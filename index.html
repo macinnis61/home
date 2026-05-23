@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TeacherBuilt // Classroom Tools</title>
+  <meta
+    name="description"
+    content="Free, privacy-first classroom utility tools built by a teacher-developer. Classroom dashboard, interaction tracker, and teacher day book planner."
+  />
+
+  <script>
+    (function () {
+      try {
+        const savedTheme = localStorage.getItem("teacherbuilt-theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (error) {
+        document.documentElement.classList.remove("dark");
+      }
+    })();
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: [
+              "Inter",
+              "-apple-system",
+              "BlinkMacSystemFont",
+              "Segoe UI",
+              "Roboto",
+              "Helvetica Neue",
+              "Arial",
+              "sans-serif"
+            ]
+          },
+          boxShadow: {
+            soft: "0 18px 60px rgba(24, 24, 27, 0.08)",
+            darkSoft: "0 18px 60px rgba(0, 0, 0, 0.32)"
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      color-scheme: light;
+    }
+
+    .dark {
+      color-scheme: dark;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(circle at 1px 1px, rgba(63, 63, 70, 0.18) 1px, transparent 0);
+      background-size: 26px 26px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.28), transparent);
+      pointer-events: none;
+    }
+
+    .dark body::before {
+      background:
+        radial-gradient(circle at 1px 1px, rgba(212, 212, 216, 0.14) 1px, transparent 0);
+      background-size: 26px 26px;
+    }
+
+    .glow-orb {
+      background:
+        radial-gradient(circle at 30% 30%, rgba(125, 211, 252, 0.32), transparent 35%),
+        radial-gradient(circle at 65% 45%, rgba(134, 239, 172, 0.26), transparent 36%),
+        radial-gradient(circle at 50% 80%, rgba(251, 191, 36, 0.16), transparent 30%);
+    }
+
+    .bento-card {
+      transition:
+        transform 220ms ease,
+        box-shadow 220ms ease,
+        border-color 220ms ease,
+        background-color 220ms ease;
+    }
+
+    .bento-card:hover {
+      transform: translateY(-4px);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bento-card,
+      .motion-safe {
+        transition: none !important;
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-zinc-50 text-zinc-900 antialiased selection:bg-emerald-200 selection:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div class="glow-orb absolute left-1/2 top-[-220px] h-[520px] w-[780px] -translate-x-1/2 rounded-full blur-3xl opacity-70 dark:opacity-35"></div>
+  </div>
+
+  <header class="sticky top-0 z-50 border-b border-zinc-200/70 bg-zinc-50/82 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/76">
+    <nav class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-4 sm:px-6 lg:px-8" aria-label="Main navigation">
+      <a href="#" class="group flex items-center gap-3" aria-label="TeacherBuilt tools home">
+        <span class="grid h-10 w-10 place-items-center rounded-2xl border border-zinc-200 bg-white text-zinc-950 shadow-sm transition group-hover:-translate-y-0.5 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50">
+          <span class="font-mono text-sm font-semibold">&lt;/&gt;</span>
+        </span>
+        <span class="leading-tight">
+          <span class="block text-sm font-semibold tracking-tight sm:text-base">TeacherBuilt // Tools</span>
+          <span class="mt-1 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/60 dark:text-emerald-300">
+            v1.0 / Open Source
+          </span>
+        </span>
+      </a>
+
+      <div class="hidden items-center gap-5 text-sm font-medium text-zinc-600 md:flex dark:text-zinc-300">
+        <a href="/dashboard" class="transition hover:text-zinc-950 dark:hover:text-white">Dashboard</a>
+        <a href="/pulse" class="transition hover:text-zinc-950 dark:hover:text-white">Pulse</a>
+        <a href="/daybook" class="transition hover:text-zinc-950 dark:hover:text-white">Day Book</a>
+        <a href="#privacy" class="transition hover:text-zinc-950 dark:hover:text-white">Why Privacy?</a>
+        <a href="https://github.com/macinnis61" target="_blank" rel="noreferrer" class="transition hover:text-zinc-950 dark:hover:text-white">GitHub</a>
+      </div>
+
+      <button
+        id="themeToggle"
+        type="button"
+        class="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:text-zinc-950 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:text-white dark:focus:ring-offset-zinc-950"
+        aria-label="Toggle light and dark mode"
+      >
+        <i id="moonIcon" data-lucide="moon" class="h-4 w-4"></i>
+        <i id="sunIcon" data-lucide="sun" class="hidden h-4 w-4"></i>
+        <span id="themeLabel" class="hidden sm:inline">Dark</span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="mx-auto grid max-w-7xl items-center gap-10 px-5 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:py-24">
+      <div>
+        <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white/80 px-3 py-1.5 text-sm font-medium text-zinc-700 shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300">
+          <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+          Built in a classroom, not a boardroom.
+        </div>
+
+        <h1 class="max-w-4xl text-4xl font-semibold tracking-[-0.045em] text-zinc-950 sm:text-5xl lg:text-7xl dark:text-white">
+          Classroom utility tools, engineered for zero-friction teaching.
+        </h1>
+
+        <p class="mt-6 max-w-2xl text-lg leading-8 text-zinc-600 sm:text-xl dark:text-zinc-300">
+          Hi, I’m Christian. I’m a classroom teacher and software developer. I built these open-source tools to eliminate daily teaching headaches, save prep hours, and keep your data entirely yours.
+        </p>
+
+        <div class="mt-8 grid gap-3 sm:grid-cols-3">
+          <a
+            href="/dashboard"
+            class="group rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-soft focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-700 dark:focus:ring-offset-zinc-950"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <span class="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300">
+                <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
+              </span>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-zinc-400 transition group-hover:text-emerald-600"></i>
+            </div>
+            <div class="mt-4 text-sm font-semibold text-zinc-950 dark:text-white">Launch Dashboard</div>
+            <div class="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">Daily routines, jobs, seating, schedule.</div>
+          </a>
+
+          <a
+            href="/pulse"
+            class="group rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-soft focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-700 dark:focus:ring-offset-zinc-950"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <span class="grid h-10 w-10 place-items-center rounded-xl bg-indigo-50 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300">
+                <i data-lucide="activity" class="h-5 w-5"></i>
+              </span>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-zinc-400 transition group-hover:text-indigo-600"></i>
+            </div>
+            <div class="mt-4 text-sm font-semibold text-zinc-950 dark:text-white">Open Pulse Tracker</div>
+            <div class="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">Live classroom interaction notes.</div>
+          </a>
+
+          <a
+            href="/daybook"
+            class="group rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-soft focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-amber-700 dark:focus:ring-offset-zinc-950"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <span class="grid h-10 w-10 place-items-center rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300">
+                <i data-lucide="calendar-days" class="h-5 w-5"></i>
+              </span>
+              <i data-lucide="arrow-up-right" class="h-4 w-4 text-zinc-400 transition group-hover:text-amber-600"></i>
+            </div>
+            <div class="mt-4 text-sm font-semibold text-zinc-950 dark:text-white">Generate Day Book</div>
+            <div class="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">Planning, sub plans, printable outlines.</div>
+          </a>
+        </div>
+
+        <div class="mt-5 flex flex-wrap gap-3">
+          <a
+            href="#tools"
+            class="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white/80 px-4 py-2 text-sm font-semibold text-zinc-700 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:text-zinc-950 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:text-white dark:focus:ring-offset-zinc-950"
+          >
+            Compare the tools
+            <i data-lucide="arrow-down" class="h-4 w-4"></i>
+          </a>
+
+          <a
+            href="#privacy"
+            class="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white/80 px-4 py-2 text-sm font-semibold text-zinc-700 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:text-zinc-950 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:text-white dark:focus:ring-offset-zinc-950"
+          >
+            Why privacy matters
+            <i data-lucide="shield-check" class="h-4 w-4"></i>
+          </a>
+        </div>
+      </div>
+
+      <aside
+        id="privacy"
+        class="relative overflow-hidden rounded-[2rem] border border-zinc-200 bg-white/86 p-6 shadow-soft backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/84 dark:shadow-darkSoft"
+        aria-label="Privacy promise"
+      >
+        <div class="absolute right-[-80px] top-[-80px] h-56 w-56 rounded-full bg-emerald-200/40 blur-3xl dark:bg-emerald-500/10"></div>
+
+        <div class="relative">
+          <div class="mb-8 flex items-start justify-between gap-5">
+            <div class="grid h-16 w-16 place-items-center rounded-3xl border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/70 dark:text-emerald-300">
+              <i data-lucide="shield-lock" class="h-8 w-8"></i>
+            </div>
+            <span class="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+              Privacy-first
+            </span>
+          </div>
+
+          <h2 class="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+            100% Client-Side.
+          </h2>
+
+          <p class="mt-3 text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+            No servers. No tracking. No student data ever leaves your browser’s localStorage.
+          </p>
+
+          <div class="mt-8 grid gap-3">
+            <div class="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
+              <i data-lucide="database-zap" class="h-5 w-5 shrink-0 text-sky-600 dark:text-sky-300"></i>
+              <span class="text-sm leading-6 text-zinc-700 dark:text-zinc-300">Class lists, jobs, seating plans, and notes stay in the current browser/site space.</span>
+            </div>
+
+            <div class="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
+              <i data-lucide="file-lock-2" class="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-300"></i>
+              <span class="text-sm leading-6 text-zinc-700 dark:text-zinc-300">Backups and exports are deliberate files you create, control, and store yourself.</span>
+            </div>
+
+            <div class="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
+              <i data-lucide="badge-check" class="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300"></i>
+              <span class="text-sm leading-6 text-zinc-700 dark:text-zinc-300">No account required. No analytics dashboard. No vendor lock-in.</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="tools" class="mx-auto max-w-7xl px-5 pb-16 sm:px-6 lg:px-8 lg:pb-24">
+      <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">Tool hub</p>
+          <h2 class="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl dark:text-white">
+            Three classroom workflows, one quiet launchpad.
+          </h2>
+        </div>
+        <p class="max-w-xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+          Built for the routines teachers already manage with whiteboards, binders, sticky notes, and too many separate tabs.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-3 md:auto-rows-[minmax(245px,auto)]">
+        <article class="bento-card md:col-span-2 rounded-[2rem] border border-zinc-200 bg-white/88 p-6 shadow-sm hover:border-zinc-300 hover:shadow-soft dark:border-zinc-800 dark:bg-zinc-900/86 dark:hover:border-zinc-700 dark:hover:shadow-darkSoft">
+          <div class="flex flex-col gap-6 lg:flex-row lg:items-stretch">
+            <div class="flex min-w-0 flex-1 flex-col">
+              <div class="mb-5 flex items-center justify-between gap-4">
+                <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/70 dark:text-emerald-300">
+                  <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                  Daily Routine
+                </span>
+                <i data-lucide="layout-dashboard" class="h-5 w-5 text-zinc-400"></i>
+              </div>
+
+              <h3 class="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                Classroom Dashboard
+              </h3>
+
+              <p class="mt-3 text-base leading-7 text-zinc-600 dark:text-zinc-300">
+                Your centralized command center for active instruction. Streamline your physical classroom flow without juggling three separate apps.
+              </p>
+
+              <ul class="mt-6 grid gap-3 text-sm text-zinc-700 dark:text-zinc-300">
+                <li class="flex gap-3">
+                  <i data-lucide="check-circle-2" class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300"></i>
+                  <span>Interactive seating chart creator for quick rearrangements and student-facing views.</span>
+                </li>
+                <li class="flex gap-3">
+                  <i data-lucide="check-circle-2" class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300"></i>
+                  <span>Dynamic classroom jobs allocator with rotation logic and cleanup roles.</span>
+                </li>
+                <li class="flex gap-3">
+                  <i data-lucide="check-circle-2" class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-300"></i>
+                  <span>Responsive weekly schedule timeline grid that turns the day into a clear agenda.</span>
+                </li>
+              </ul>
+
+              <div class="mt-8">
+                <a
+                  href="/dashboard"
+                  class="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 focus:ring-offset-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 dark:focus:ring-white dark:focus:ring-offset-zinc-900"
+                >
+                  Launch Dashboard
+                  <i data-lucide="arrow-up-right" class="h-4 w-4"></i>
+                </a>
+              </div>
+            </div>
+
+            <div class="min-h-[260px] rounded-3xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/68 lg:w-[310px]">
+              <div class="mb-4 flex items-center justify-between">
+                <div>
+                  <div class="h-2 w-24 rounded-full bg-zinc-300 dark:bg-zinc-700"></div>
+                  <div class="mt-2 h-2 w-16 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
+                </div>
+                <div class="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Today</div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2">
+                <div class="h-16 rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-2 w-8 rounded-full bg-sky-300"></div>
+                  <div class="mt-3 h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-16 rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-2 w-6 rounded-full bg-emerald-300"></div>
+                  <div class="mt-3 h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-16 rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-2 w-7 rounded-full bg-amber-300"></div>
+                  <div class="mt-3 h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-16 rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-2 w-5 rounded-full bg-rose-300"></div>
+                  <div class="mt-3 h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-16 rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-2 w-8 rounded-full bg-violet-300"></div>
+                  <div class="mt-3 h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-16 rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-2 w-6 rounded-full bg-cyan-300"></div>
+                  <div class="mt-3 h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-16 rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-2 w-7 rounded-full bg-lime-300"></div>
+                  <div class="mt-3 h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-16 rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-2 w-5 rounded-full bg-orange-300"></div>
+                  <div class="mt-3 h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-16 rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-2 w-8 rounded-full bg-teal-300"></div>
+                  <div class="mt-3 h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+              </div>
+
+              <div class="mt-4 grid gap-2">
+                <div class="flex items-center gap-3 rounded-2xl bg-white p-3 dark:bg-zinc-900">
+                  <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                  <span class="h-2 flex-1 rounded-full bg-zinc-200 dark:bg-zinc-700"></span>
+                  <span class="h-2 w-12 rounded-full bg-zinc-200 dark:bg-zinc-700"></span>
+                </div>
+                <div class="flex items-center gap-3 rounded-2xl bg-white p-3 dark:bg-zinc-900">
+                  <span class="h-2 w-2 rounded-full bg-sky-500"></span>
+                  <span class="h-2 flex-1 rounded-full bg-zinc-200 dark:bg-zinc-700"></span>
+                  <span class="h-2 w-10 rounded-full bg-zinc-200 dark:bg-zinc-700"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="bento-card md:row-span-2 rounded-[2rem] border border-zinc-200 bg-white/88 p-6 shadow-sm hover:border-zinc-300 hover:shadow-soft dark:border-zinc-800 dark:bg-zinc-900/86 dark:hover:border-zinc-700 dark:hover:shadow-darkSoft">
+          <div class="flex h-full flex-col">
+            <div class="mb-5 flex items-center justify-between gap-4">
+              <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800 dark:border-indigo-900/70 dark:bg-indigo-950/70 dark:text-indigo-300">
+                <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+                Live Tracking
+              </span>
+              <i data-lucide="activity" class="h-5 w-5 text-zinc-400"></i>
+            </div>
+
+            <h3 class="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+              Interaction Pulse
+            </h3>
+
+            <p class="mt-3 text-base leading-7 text-zinc-600 dark:text-zinc-300">
+              Stop relying on scattered sticky notes during live lessons. Effortlessly capture micro-interactions, positive reinforcements, and shifting student behaviors in real-time.
+            </p>
+
+            <p class="mt-4 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+              Log data instantly during class, then step back later to analyze the underlying patterns shaping the room.
+            </p>
+
+            <div class="my-8 rounded-3xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/68">
+              <div class="mb-4 flex items-center justify-between">
+                <div>
+                  <div class="h-2 w-28 rounded-full bg-zinc-300 dark:bg-zinc-700"></div>
+                  <div class="mt-2 h-2 w-16 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
+                </div>
+                <i data-lucide="trending-up" class="h-4 w-4 text-indigo-500"></i>
+              </div>
+
+              <div class="space-y-3">
+                <div class="grid grid-cols-[56px_1fr] items-center gap-3">
+                  <span class="text-[11px] font-medium text-zinc-500">Mon</span>
+                  <div class="h-3 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                    <div class="h-full w-[42%] rounded-full bg-indigo-400"></div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-[56px_1fr] items-center gap-3">
+                  <span class="text-[11px] font-medium text-zinc-500">Tue</span>
+                  <div class="h-3 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                    <div class="h-full w-[70%] rounded-full bg-sky-400"></div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-[56px_1fr] items-center gap-3">
+                  <span class="text-[11px] font-medium text-zinc-500">Wed</span>
+                  <div class="h-3 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                    <div class="h-full w-[58%] rounded-full bg-emerald-400"></div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-[56px_1fr] items-center gap-3">
+                  <span class="text-[11px] font-medium text-zinc-500">Thu</span>
+                  <div class="h-3 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                    <div class="h-full w-[84%] rounded-full bg-indigo-400"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 grid grid-cols-3 gap-2">
+                <div class="rounded-2xl bg-white p-3 text-center dark:bg-zinc-900">
+                  <div class="text-lg font-semibold text-zinc-950 dark:text-white">18</div>
+                  <div class="mt-1 text-[10px] font-medium uppercase tracking-wider text-zinc-500">Notes</div>
+                </div>
+                <div class="rounded-2xl bg-white p-3 text-center dark:bg-zinc-900">
+                  <div class="text-lg font-semibold text-zinc-950 dark:text-white">7</div>
+                  <div class="mt-1 text-[10px] font-medium uppercase tracking-wider text-zinc-500">Wins</div>
+                </div>
+                <div class="rounded-2xl bg-white p-3 text-center dark:bg-zinc-900">
+                  <div class="text-lg font-semibold text-zinc-950 dark:text-white">4</div>
+                  <div class="mt-1 text-[10px] font-medium uppercase tracking-wider text-zinc-500">Flags</div>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="/pulse"
+              class="mt-auto inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-semibold text-zinc-800 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:text-zinc-950 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-white dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-zinc-700 dark:focus:ring-offset-zinc-900"
+            >
+              Open Pulse Tracker
+              <i data-lucide="arrow-up-right" class="h-4 w-4"></i>
+            </a>
+          </div>
+        </article>
+
+        <article class="bento-card md:col-span-2 rounded-[2rem] border border-zinc-200 bg-white/88 p-6 shadow-sm hover:border-zinc-300 hover:shadow-soft dark:border-zinc-800 dark:bg-zinc-900/86 dark:hover:border-zinc-700 dark:hover:shadow-darkSoft">
+          <div class="grid gap-6 lg:grid-cols-[1fr_300px] lg:items-center">
+            <div>
+              <div class="mb-5 flex items-center justify-between gap-4">
+                <span class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/70 dark:text-amber-300">
+                  <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                  Intermittent / Setup
+                </span>
+                <i data-lucide="calendar-days" class="h-5 w-5 text-zinc-400"></i>
+              </div>
+
+              <h3 class="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                Teacher Day Book
+              </h3>
+
+              <p class="mt-3 text-base leading-7 text-zinc-600 dark:text-zinc-300">
+                Built specifically for seasonal curriculum scheduling and sudden emergency sub plan generation. Maps out your calendar days into clean, structured day-plan outlines.
+              </p>
+
+              <ul class="mt-6 grid gap-3 text-sm text-zinc-700 dark:text-zinc-300">
+                <li class="flex gap-3">
+                  <i data-lucide="check-circle-2" class="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300"></i>
+                  <span>Automated calendar matrix mapping for long-range planning.</span>
+                </li>
+                <li class="flex gap-3">
+                  <i data-lucide="check-circle-2" class="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300"></i>
+                  <span>Templated substitute binder generation for emergency coverage days.</span>
+                </li>
+                <li class="flex gap-3">
+                  <i data-lucide="check-circle-2" class="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300"></i>
+                  <span>Zero-configuration print-ready PDF output rendering.</span>
+                </li>
+              </ul>
+
+              <div class="mt-8">
+                <a
+                  href="/daybook"
+                  class="inline-flex items-center justify-center gap-2 rounded-full bg-amber-500 px-5 py-3 text-sm font-semibold text-zinc-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-zinc-900"
+                >
+                  Generate Day Book
+                  <i data-lucide="arrow-up-right" class="h-4 w-4"></i>
+                </a>
+              </div>
+            </div>
+
+            <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/68">
+              <div class="mb-4 flex items-center justify-between">
+                <div class="h-2 w-24 rounded-full bg-zinc-300 dark:bg-zinc-700"></div>
+                <div class="h-8 w-8 rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 grid place-items-center">
+                  <i data-lucide="printer" class="h-4 w-4"></i>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-5 gap-1.5">
+                <div class="rounded-lg bg-zinc-200 py-1 text-center text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">M</div>
+                <div class="rounded-lg bg-zinc-200 py-1 text-center text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">T</div>
+                <div class="rounded-lg bg-zinc-200 py-1 text-center text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">W</div>
+                <div class="rounded-lg bg-zinc-200 py-1 text-center text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">T</div>
+                <div class="rounded-lg bg-zinc-200 py-1 text-center text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">F</div>
+
+                <div class="h-12 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-1.5 w-8 rounded bg-amber-300"></div>
+                  <div class="mt-2 h-1.5 w-full rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-12 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-1.5 w-6 rounded bg-sky-300"></div>
+                  <div class="mt-2 h-1.5 w-full rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-12 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-1.5 w-7 rounded bg-emerald-300"></div>
+                  <div class="mt-2 h-1.5 w-full rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-12 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-1.5 w-5 rounded bg-violet-300"></div>
+                  <div class="mt-2 h-1.5 w-full rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-12 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-1.5 w-8 rounded bg-rose-300"></div>
+                  <div class="mt-2 h-1.5 w-full rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+
+                <div class="h-12 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-1.5 w-7 rounded bg-sky-300"></div>
+                  <div class="mt-2 h-1.5 w-full rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-12 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-1.5 w-8 rounded bg-emerald-300"></div>
+                  <div class="mt-2 h-1.5 w-full rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-12 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-1.5 w-6 rounded bg-amber-300"></div>
+                  <div class="mt-2 h-1.5 w-full rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-12 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-1.5 w-7 rounded bg-cyan-300"></div>
+                  <div class="mt-2 h-1.5 w-full rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+                <div class="h-12 rounded-xl border border-zinc-200 bg-white p-1.5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div class="h-1.5 w-5 rounded bg-lime-300"></div>
+                  <div class="mt-2 h-1.5 w-full rounded bg-zinc-200 dark:bg-zinc-700"></div>
+                </div>
+              </div>
+
+              <div class="mt-4 rounded-2xl border border-dashed border-amber-300 bg-amber-50 p-3 dark:border-amber-900/80 dark:bg-amber-950/30">
+                <div class="flex items-center gap-2 text-xs font-semibold text-amber-900 dark:text-amber-200">
+                  <i data-lucide="file-text" class="h-4 w-4"></i>
+                  Print-ready day plan
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-zinc-200 bg-white/60 dark:border-zinc-800 dark:bg-zinc-950/60">
+    <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-5 px-5 py-8 sm:px-6 md:flex-row md:items-center lg:px-8">
+      <p class="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        Made with 💻 by a teacher, for teachers. Free and open source under the MIT License.
+      </p>
+
+      <a
+        href="https://github.com/macinnis61"
+        target="_blank"
+        rel="noreferrer"
+        class="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 bg-zinc-950 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 focus:ring-offset-white dark:border-zinc-700 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 dark:focus:ring-white dark:focus:ring-offset-zinc-950"
+      >
+        <i data-lucide="github" class="h-4 w-4"></i>
+        Fork this project on GitHub
+      </a>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const toggle = document.getElementById("themeToggle");
+      const label = document.getElementById("themeLabel");
+
+      function renderThemeControl() {
+        const isDark = root.classList.contains("dark");
+        const moonIcon = document.getElementById("moonIcon");
+        const sunIcon = document.getElementById("sunIcon");
+
+        if (label) label.textContent = isDark ? "Light" : "Dark";
+        if (moonIcon) moonIcon.classList.toggle("hidden", isDark);
+        if (sunIcon) sunIcon.classList.toggle("hidden", !isDark);
+        if (toggle) toggle.setAttribute("aria-pressed", String(isDark));
+      }
+
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+
+      renderThemeControl();
+
+      toggle.addEventListener("click", function () {
+        const nextTheme = root.classList.contains("dark") ? "light" : "dark";
+        root.classList.toggle("dark", nextTheme === "dark");
+
+        try {
+          localStorage.setItem("teacherbuilt-theme", nextTheme);
+        } catch (error) {
+          // Theme still toggles visually if localStorage is unavailable.
+        }
+
+        renderThemeControl();
+      });
+    })();
+  </script>
+</body>
+</html>
